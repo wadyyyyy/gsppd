@@ -1,0 +1,263 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Elden Ring Interactive Map</title>
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #1a1a1a;
+            }
+            #map {
+                height: 100vh;
+                width: 100vw;
+            }
+            .leaflet-popup-content-wrapper {
+                background-color: #f9f9f9;
+                color: #333;
+                border-radius: 4px;
+                max-height: 300px;
+                overflow-y: auto;
+            }
+            .map-toggle {
+                position: absolute;
+                top: 12px;
+                right: 12px;
+                z-index: 1000;
+                background: rgba(20, 20, 20, 0.9);
+                color: #fff;
+                padding: 8px 10px;
+                border-radius: 6px;
+                font-size: 14px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .map-toggle input {
+                margin: 0;
+            }
+            .map-toggle label {
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .leaflet-popup-content h3 {
+                color: #8b0000;
+                border-bottom: 1px solid #ccc;
+                padding-bottom: 5px;
+            }
+            .item-entry {
+                margin-bottom: 10px;
+                font-size: 14px;
+            }
+            .item-title {
+                font-weight: bold;
+                color: #222;
+            }
+            .item-desc {
+                font-size: 12px;
+                color: #555;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        <div class="map-toggle">
+            <label>
+                <input type="checkbox" id="toggle-bosses" />
+                Показать боссов
+            </label>
+        </div>
+
+        <script>
+            var map = L.map("map", {
+                crs: L.CRS.Simple,
+                minZoom: -3,
+                maxZoom: 0,
+                attributionControl: false,
+            });
+
+            var bounds = [
+                [60.9692305022454093, -220.9028404667531618],
+                [12024.4559017350311478, 9155.1591793561347004],
+            ];
+
+            L.imageOverlay("map.png", bounds).addTo(map);
+            map.fitBounds(bounds);
+
+            const bossLayer = L.layerGroup();
+            const bossMarkers = [];
+            let bossIcon = null;
+            let bossIconSize = null;
+            let bossesLoaded = false;
+            let bossesLoading = false;
+
+            function getBossIconSize() {
+                const minZoom = map.getMinZoom();
+                const maxZoom = map.getMaxZoom();
+                const zoom = map.getZoom();
+                if (minZoom === maxZoom) {
+                    return 20;
+                }
+                const t = (zoom - minZoom) / (maxZoom - minZoom);
+                const minSize = 20;
+                const maxSize = 40;
+                return Math.round(minSize + t * (maxSize - minSize));
+            }
+
+            function buildBossIcon(size) {
+                return L.icon({
+                    iconUrl: "/assets/skull.png",
+                    iconSize: [size, size],
+                    iconAnchor: [size / 2, size / 2],
+                    popupAnchor: [0, -size / 2],
+                });
+            }
+
+            function updateBossIcons() {
+                const size = getBossIconSize();
+                if (size === bossIconSize) {
+                    return;
+                }
+                bossIconSize = size;
+                bossIcon = buildBossIcon(size);
+                bossMarkers.forEach((marker) => marker.setIcon(bossIcon));
+            }
+
+            function loadBosses() {
+                if (bossesLoaded || bossesLoading) {
+                    return;
+                }
+                bossesLoading = true;
+                updateBossIcons();
+                fetch("/api/bosses")
+                    .then((res) => res.json())
+                    .then((data) => {
+                        if (!Array.isArray(data)) {
+                            return;
+                        }
+                        data.forEach((boss) => {
+                            if (boss.x == null || boss.y == null) {
+                                return;
+                            }
+                            const marker = L.marker([boss.y, boss.x], {
+                                icon: bossIcon,
+                            });
+                            const name = boss.name || "Босс";
+                            marker.bindPopup(`<b>${name}</b>`);
+                            bossMarkers.push(marker);
+                            bossLayer.addLayer(marker);
+                        });
+                        bossesLoaded = true;
+                    })
+                    .catch((err) => {
+                        console.error("Ошибка загрузки боссов:", err);
+                    })
+                    .finally(() => {
+                        bossesLoading = false;
+                    });
+            }
+
+            const toggleBosses = document.getElementById("toggle-bosses");
+            toggleBosses.addEventListener("change", () => {
+                if (toggleBosses.checked) {
+                    loadBosses();
+                    bossLayer.addTo(map);
+                } else {
+                    map.removeLayer(bossLayer);
+                }
+            });
+
+            map.on("zoomend", () => {
+                if (bossesLoaded) {
+                    updateBossIcons();
+                }
+            });
+
+            const colors = [
+                "#ff4b4b50",
+                "#3388ff50",
+                "#22cc2250",
+                "#ffb53350",
+                "#9933ff50",
+                "#33ffcc50",
+                "#ff339950",
+                "#d4af3750",
+            ];
+
+            fetch("/api/areas")
+                .then((response) => response.json())
+                .then((data) => {
+                    L.geoJSON(data, {
+                        style: function (feature) {
+                            let fid = feature.properties.fid || 0;
+                            return {
+                                color: colors[fid % colors.length],
+                                weight: 2,
+                                fillOpacity: 0.35,
+                            };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            let areaName =
+                                feature.properties["area_name "] ||
+                                feature.properties.area_name ||
+                                "Неизвестная зона";
+
+                            layer.bindPopup(
+                                `<b>${areaName}</b><br><span style="color:#888;">Загрузка данных...</span>`,
+                            );
+
+                            layer.on("click", function () {
+                                fetch(
+                                    "/api/content?fid=" +
+                                        feature.properties.fid,
+                                )
+                                    .then((res) => res.json())
+                                    .then((content) => {
+                                        let html = `<h3 style="margin-top:0;">${areaName}</h3>`;
+
+                                        if (Array.isArray(content)) {
+                                            if (content.length === 0) {
+                                                html += `<p>Нет данных об этой локации.</p>`;
+                                            } else {
+                                                content.forEach((item) => {
+                                                    let name =
+                                                        item.obj_name ||
+                                                        item.msg ||
+                                                        "Объект";
+                                                    let desc =
+                                                        item.description || "";
+
+                                                    html += `<div class="item-entry">`;
+                                                    html += `<div class="item-title">${name}</div>`;
+                                                    if (desc) {
+                                                        html += `<div class="item-desc">${desc}</div>`;
+                                                    }
+                                                    html += `</div>`;
+                                                });
+                                            }
+                                        } else {
+                                            html += `<pre>${JSON.stringify(content, null, 2)}</pre>`;
+                                        }
+
+                                        layer.setPopupContent(html);
+                                    })
+                                    .catch((err) => {
+                                        layer.setPopupContent(
+                                            `<b>${areaName}</b><br><span style="color:red;">Ошибка загрузки</span>`,
+                                        );
+                                    });
+                            });
+                        },
+                    }).addTo(map);
+                });
+        </script>
+    </body>
+</html>
