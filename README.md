@@ -73,6 +73,7 @@ gsppd/
 
 3. **Preview GeoJSON Data (Python):**
    If you want to visualize the raw map data without starting the web server, it is recommended to use a virtual environment:
+
    ```bash
    python3 -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
@@ -93,3 +94,9 @@ This project actively demonstrates:
 - **Data Ingestion:** Reading from disparate data sources (JSON, Excel).
 - **Data Normalization:** Merging spatial and tabular data into a strictly typed SQL schema.
 - **Go Proficiency:** Implementing file I/O, routing, and database drivers in Go, making it an excellent showcase for high-load data parsing services.
+
+## Status
+
+This repository contains a university coursework project and is preserved primarily for reference purposes.
+
+The code is provided as-is and has not been actively maintained since the completion of the coursework.
