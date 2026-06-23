@@ -7,6 +7,7 @@
             href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
         <style>
             body {
                 margin: 0;
@@ -65,16 +66,71 @@
                 font-size: 12px;
                 color: #555;
             }
+            .map-header {
+                position: absolute;
+                top: 12px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 1000;
+                background: rgba(20, 20, 20, 0.85);
+                backdrop-filter: blur(4px);
+                color: #d4af37; /* Золотой цвет */
+                padding: 10px 20px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                letter-spacing: 0.5px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+                border: 1px solid rgba(212, 175, 55, 0.3);
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            .map-footer {
+                position: absolute;
+                bottom: 12px;
+                right: 12px;
+                z-index: 1000;
+                background: rgba(20, 20, 20, 0.85);
+                backdrop-filter: blur(4px);
+                color: #eee;
+                padding: 10px 15px;
+                border-radius: 8px;
+                font-size: 13px;
+                line-height: 1.4;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                font-family: sans-serif;
+            }
+            .map-footer .author-title {
+                font-size: 11px;
+                color: #888;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-bottom: 4px;
+            }
         </style>
     </head>
     <body>
+        <div class="map-header">
+            Карта мира из дополнения для компьютерной видеоигры "Elden Ring: Shadow of the Erdtree"
+        </div>
+
         <div id="map"></div>
+        
         <div class="map-toggle">
             <label>
                 <input type="checkbox" id="toggle-bosses" />
                 Показать боссов
             </label>
         </div>
+
+        <div class="map-footer">
+            <div class="author-title">Выполнили:</div>
+            <div>Тимченко В.С. РСБО-02-24</div>
+            <div>Коньков А.Д. РСБО-02-24</div>
+        </div>
+
 
         <script>
             var map = L.map("map", {
