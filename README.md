@@ -2,8 +2,12 @@
 
 A backend system and web API built in Go for parsing, processing, and serving geospatial and tabular data. This project processes GeoJSON polygons and Excel-based metadata, compiles them into a unified SQLite database, and serves the data via a RESTful API for interactive web mapping (applied to an Elden Ring DLC map).
 
-This project highlights backend skills in data parsing, database design, and API development, matching real-world requirements for collecting and structuring complex datasets.
+## Status
 
+This repository contains a university coursework project and is preserved primarily for reference purposes.
+
+The code is provided as-is and has not been actively maintained since the completion of the coursework.
+  
 ## Features
 
 - **Geospatial Data Parsing:** Parses complex GeoJSON data (including Polygons and MultiPolygons with cutouts) into a relational database.
@@ -87,16 +91,4 @@ gsppd/
 - `GET /api/areas` - Retrieves spatial geometry directly from the SQLite database (using SpatiaLite's `AsGeoJSON`) and serves it as a valid GeoJSON FeatureCollection.
 - `GET /api/content` - Retrieves structured, parsed metadata from the SQLite database associated with the requested map areas.
 
-## Relevancy to Data Engineering & Backend Roles
 
-This project actively demonstrates:
-
-- **Data Ingestion:** Reading from disparate data sources (JSON, Excel).
-- **Data Normalization:** Merging spatial and tabular data into a strictly typed SQL schema.
-- **Go Proficiency:** Implementing file I/O, routing, and database drivers in Go, making it an excellent showcase for high-load data parsing services.
-
-## Status
-
-This repository contains a university coursework project and is preserved primarily for reference purposes.
-
-The code is provided as-is and has not been actively maintained since the completion of the coursework.
